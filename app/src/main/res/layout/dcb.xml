@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/dcb_frame">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Double Color Balls"
+        android:textSize="30sp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Is it your lucky day?"
+            android:textSize="22sp"
+            android:id="@+id/textView2" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textView2"
+            android:paddingTop="10dp"
+            >
+            <TextView
+                android:padding="@dimen/fab_margin"
+                android:layout_alignParentLeft="true"
+                android:layout_weight="17"
+                android:layout_height="wrap_content"
+                android:background="#e7e7e7"
+                android:textAlignment="center"
+                android:textSize="25sp"
+                android:textColor="#0b60e7"
+                android:id="@+id/dcb_section_1"
+                android:layout_width="0dp" />
+            <TextView
+                android:padding="@dimen/fab_margin"
+                android:layout_weight="4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/dcb_section_1"
+                android:background="#e7e7e7"
+                android:textColor="#f20621"
+                android:textAlignment="center"
+                android:textSize="25sp"
+                android:id="@+id/dcb_section_2"/>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>
