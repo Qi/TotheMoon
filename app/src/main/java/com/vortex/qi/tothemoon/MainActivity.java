@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HeaderViewListAdapter;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity
 
     public FloatingActionButton fab;
     public Spinner regionSpinner;
+    public NavigationView navigationView;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +55,7 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         View headerView = navigationView.getHeaderView(0);
         regionSpinner = (Spinner) headerView.findViewById(R.id.region_spinner);
@@ -61,6 +63,26 @@ public class MainActivity extends AppCompatActivity
                 R.array.countries_array, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         regionSpinner.setAdapter(adapter);
+        regionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                if (id == 0) {
+                    navigationView.getMenu().clear();
+                    navigationView.inflateMenu(R.menu.activity_main_drawer_cn_ml);
+
+                } else if (id == 1) {
+                    navigationView.getMenu().clear();
+                    navigationView.inflateMenu(R.menu.activity_main_drawer_ca_on);
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     @Override
