@@ -116,8 +116,16 @@ public class MainActivity extends AppCompatActivity
             ft.commit();
 
         } else if (id == R.id.nav_ss) {
+            fragment = new ss_fragment();
+            ft = getFragmentManager().beginTransaction();
+            ft.replace(R.id.content_frame, fragment);
+            ft.commit();
 
         } else if (id == R.id.nav_sh) {
+            fragment = new sh_fragment();
+            ft = getFragmentManager().beginTransaction();
+            ft.replace(R.id.content_frame, fragment);
+            ft.commit();
 
         } else if (id == R.id.nav_share) {
 
@@ -130,7 +138,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public String generateNum(int upper, int number, boolean unique){
+    public String generateNum(int lower, int upper, int number, boolean unique){
         String selectedNums = "";
         Random rand = new Random();
         int[] num = new int[number];
@@ -140,7 +148,7 @@ public class MainActivity extends AppCompatActivity
         if(unique){
             Boolean notExist=true;
             while(count<num.length){
-                temp = rand.nextInt(upper-1)+1;
+                temp = rand.nextInt(upper-lower)+lower;
                 for(int j=0;j<count;j++){
                     if(num[j]==temp){
                         notExist = false;
@@ -159,11 +167,8 @@ public class MainActivity extends AppCompatActivity
             }
         }else{
             for(int i=0;i<number;i++){
-                num[i] = rand.nextInt(upper-1)+1;
-            }
-            Arrays.sort(num);
-            for (int aNum : num) {
-                selectedNums = selectedNums + formatter.format(aNum) + " ";
+                num[i] = rand.nextInt(upper-lower)+lower;
+                selectedNums = selectedNums + formatter.format(num[i]) + " ";
             }
         }
         return selectedNums;
