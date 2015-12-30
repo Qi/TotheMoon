@@ -20,9 +20,9 @@ public class sbl_fragment extends android.app.Fragment {
     }
     public void selectedBalls(){
         TextView textView1 = (TextView) getView().findViewById(R.id.sbl_section_1);
-        textView1.setText(((MainActivity)getActivity()).generateNum(35, 5, true));
+        textView1.setText(((MainActivity)getActivity()).generateNum(1, 35, 5, true));
         TextView textView2 = (TextView) getView().findViewById(R.id.sbl_section_2);
-        textView2.setText(((MainActivity)getActivity()).generateNum(12, 2, true));
+        textView2.setText(((MainActivity)getActivity()).generateNum(1, 12, 2, true));
     }
     @Override
     public void onResume()
