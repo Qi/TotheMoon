@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity
         if(unique){
             Boolean notExist=true;
             while(count<num.length){
-                temp = rand.nextInt(upper-lower)+lower;
+                temp = rand.nextInt(upper-lower+1)+lower;
                 for(int j=0;j<count;j++){
                     if(num[j]==temp){
                         notExist = false;
@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity
             }
         }else{
             for(int i=0;i<number;i++){
-                num[i] = rand.nextInt(upper-lower)+lower;
+                num[i] = rand.nextInt(upper-lower+1)+lower;
                 selectedNums = selectedNums + formatter.format(num[i]) + " ";
             }
         }
