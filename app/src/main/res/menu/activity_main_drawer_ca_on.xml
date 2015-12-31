@@ -3,21 +3,21 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_CA_0"
+            android:id="@+id/nav_lotto_max"
             android:icon="@drawable/ic_menu_camera"
-            android:title="CA_0" />
+            android:title="Lotto Max" />
         <item
-            android:id="@+id/nav_CA_1"
+            android:id="@+id/nav_lotto_649"
             android:icon="@drawable/ic_menu_gallery"
-            android:title="CA_1" />
+            android:title="Lotto 6/49" />
         <item
-            android:id="@+id/nav_CA_2"
+            android:id="@+id/nav_ontario_49"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="CA_2" />
+            android:title="ONTARIO 49" />
         <item
-            android:id="@+id/nav_CA_3"
+            android:id="@+id/nav_lottario"
             android:icon="@drawable/ic_menu_manage"
-            android:title="CA_3" />
+            android:title="LOTTARIO" />
     </group>
 
     <item android:title="Communicate">

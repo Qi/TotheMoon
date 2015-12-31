@@ -153,6 +153,30 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_support) {
 
+        } else if (id == R.id.nav_lotto_max) {
+            fragment = new lm_fragment();
+            ft = getFragmentManager().beginTransaction();
+            ft.replace(R.id.content_frame, fragment);
+            ft.commit();
+
+        } else if (id == R.id.nav_lotto_649) {
+            fragment = new l6_fragment();
+            ft = getFragmentManager().beginTransaction();
+            ft.replace(R.id.content_frame, fragment);
+            ft.commit();
+
+        } else if (id == R.id.nav_ontario_49) {
+            fragment = new o4_fragment();
+            ft = getFragmentManager().beginTransaction();
+            ft.replace(R.id.content_frame, fragment);
+            ft.commit();
+
+        } else if (id == R.id.nav_lottario) {
+            fragment = new lo_fragment();
+            ft = getFragmentManager().beginTransaction();
+            ft.replace(R.id.content_frame, fragment);
+            ft.commit();
+
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
