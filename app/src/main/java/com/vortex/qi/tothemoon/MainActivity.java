@@ -3,8 +3,10 @@ package com.vortex.qi.tothemoon;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.media.Image;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
@@ -20,6 +22,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HeaderViewListAdapter;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity
     public FloatingActionButton fab;
     public Spinner regionSpinner;
     public NavigationView navigationView;
+    public CollapsingToolbarLayout collapsingToolbarLayout;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +50,9 @@ public class MainActivity extends AppCompatActivity
         fragment = new dcb_fragment();
         ft = getFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, fragment).commit();
+
+        collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbarLayout.setTitle("Double Color Balls");
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -130,24 +137,28 @@ public class MainActivity extends AppCompatActivity
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Double Color Balls");
 
         } else if (id == R.id.nav_bl) {
             fragment = new sbl_fragment();
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Big Lottery");
 
         } else if (id == R.id.nav_ss) {
             fragment = new ss_fragment();
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Seven Stars");
 
         } else if (id == R.id.nav_sh) {
             fragment = new sh_fragment();
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Seven Happiness");
 
         } else if (id == R.id.nav_share) {
 
@@ -158,24 +169,28 @@ public class MainActivity extends AppCompatActivity
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Lotto Max");
 
         } else if (id == R.id.nav_lotto_649) {
             fragment = new l6_fragment();
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Lotto 6/49");
 
         } else if (id == R.id.nav_ontario_49) {
             fragment = new o4_fragment();
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Ontario 49");
 
         } else if (id == R.id.nav_lottario) {
             fragment = new lo_fragment();
             ft = getFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
+            collapsingToolbarLayout.setTitle("Lottario");
 
         }
 
