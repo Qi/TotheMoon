@@ -10,6 +10,7 @@ import android.preference.PreferenceActivity;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -65,18 +66,21 @@ public class MainActivity extends AppCompatActivity
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbarLayout.setTitle("Double Color Balls");
 
-        nextDate = (TextView) findViewById(R.id.tv_next_date);
-        prizePool = (TextView) findViewById(R.id.tv_prize_pool);
-
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
         infoDate = new String[2];
+        infoPool = new String[2];
 
         infoDate[0] = "http://www.olg.ca/lotteries/games/howtoplay.do?game=lottario";
-        infoDate[1] = ".allCaps bold fontSize125 marginClearBottom black";
+        infoDate[1] = "p[class*=marginClearBottom]";
+        infoPool[0] = infoDate[0];
+        infoPool[1] = "p[class*=marginClearAll]";
 
+        View includedView = findViewById(R.id.included_layout);
+        nextDate = (TextView) includedView.findViewById(R.id.tv_next_date);
+        prizePool = (TextView) includedView.findViewById(R.id.tv_prize_pool);
         new WebInfoDate().execute(infoDate);
-//        new WebInfoPool().execute(infoPool);
+        new WebInfoPool().execute(infoPool);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -262,14 +266,15 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected String doInBackground(String... params) {
             Document doc = null;
-            Elements date = null;
+            Element date = null;
             try {
                 doc = Jsoup.connect(params[0]).get();
-                date = doc.select(params[1]);
+                date = doc.select(params[1]).first();
+                Log.d("JSwa", "Connecting to [" + date.text() + "]");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return date.toString();
+            return date.text();
         }
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
@@ -282,18 +287,18 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected String doInBackground(String... params) {
             Document doc = null;
-            Elements pool = null;
+            Element pool = null;
             try {
                 doc = Jsoup.connect(params[0]).get();
-                pool = doc.select(params[1]);
+                pool = doc.select(params[1]).first();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return pool.toString();
+            return pool.text();
         }
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            nextDate.setText(result);
+            prizePool.setText(result);
         }
     }
 }
