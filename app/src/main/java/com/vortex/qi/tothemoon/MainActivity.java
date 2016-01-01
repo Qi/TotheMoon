@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.media.Image;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -26,6 +27,13 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.lang.annotation.Documented;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -35,10 +43,13 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public TextView nextDate;
+    public TextView prizePool;
     public FloatingActionButton fab;
     public Spinner regionSpinner;
     public NavigationView navigationView;
     public CollapsingToolbarLayout collapsingToolbarLayout;
+    public String[] infoDate,infoPool;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +65,18 @@ public class MainActivity extends AppCompatActivity
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbarLayout.setTitle("Double Color Balls");
 
+        nextDate = (TextView) findViewById(R.id.tv_next_date);
+        prizePool = (TextView) findViewById(R.id.tv_prize_pool);
+
         fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        infoDate = new String[2];
+
+        infoDate[0] = "http://www.olg.ca/lotteries/games/howtoplay.do?game=lottario";
+        infoDate[1] = ".allCaps bold fontSize125 marginClearBottom black";
+
+        new WebInfoDate().execute(infoDate);
+//        new WebInfoPool().execute(infoPool);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -235,4 +257,43 @@ public class MainActivity extends AppCompatActivity
         return selectedNums;
     }
 
+    private class WebInfoDate extends AsyncTask <String,Void, String>{
+
+        @Override
+        protected String doInBackground(String... params) {
+            Document doc = null;
+            Elements date = null;
+            try {
+                doc = Jsoup.connect(params[0]).get();
+                date = doc.select(params[1]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return date.toString();
+        }
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            nextDate.setText(result);
+        }
+    }
+
+    private class WebInfoPool extends AsyncTask <String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            Document doc = null;
+            Elements pool = null;
+            try {
+                doc = Jsoup.connect(params[0]).get();
+                pool = doc.select(params[1]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return pool.toString();
+        }
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            nextDate.setText(result);
+        }
+    }
 }
