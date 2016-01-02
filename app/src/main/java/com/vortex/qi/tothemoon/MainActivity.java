@@ -1,8 +1,8 @@
 package com.vortex.qi.tothemoon;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -34,8 +34,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.lang.annotation.Documented;
-import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -51,36 +49,31 @@ public class MainActivity extends AppCompatActivity
     public NavigationView navigationView;
     public CollapsingToolbarLayout collapsingToolbarLayout;
     public String[] infoDate,infoPool;
+    public MenuItem lastPickLottery;
+    public int lastPickRegion=-1;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Fragment fragment;
-        FragmentTransaction ft;
-        fragment = new dcb_fragment();
-        ft = getFragmentManager().beginTransaction();
-        ft.replace(R.id.content_frame, fragment).commit();
-
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-        collapsingToolbarLayout.setTitle("Double Color Balls");
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
         infoDate = new String[2];
         infoPool = new String[2];
 
-        infoDate[0] = "http://www.olg.ca/lotteries/games/howtoplay.do?game=lottario";
-        infoDate[1] = "p[class*=marginClearBottom]";
-        infoPool[0] = infoDate[0];
-        infoPool[1] = "p[class*=marginClearAll]";
+//        infoDate[0] = "http://caipiao.163.com/order/ssq/";
+//        infoDate[1] = "span:contains(投注截止时间)";
+//        infoPool[0] = infoDate[0];
+//        infoPool[1] = "p[class*=totalPool]";
 
         View includedView = findViewById(R.id.included_layout);
         nextDate = (TextView) includedView.findViewById(R.id.tv_next_date);
         prizePool = (TextView) includedView.findViewById(R.id.tv_prize_pool);
-        new WebInfoDate().execute(infoDate);
-        new WebInfoPool().execute(infoPool);
+//        new WebInfoDate().execute(infoDate);
+//        new WebInfoPool().execute(infoPool);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -100,6 +93,12 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
+                SharedPreferences restoreSharedPref = getSharedPreferences("Settings", 0);
+                SharedPreferences.Editor prefEditor = restoreSharedPref.edit();
+                prefEditor.putInt("lastPickRegion", (int) id);
+                prefEditor.commit();
+                Log.d("QiWu", id + "was picked");
+
                 if (id == 0) {
                     navigationView.getMenu().clear();
                     navigationView.inflateMenu(R.menu.activity_main_drawer_cn_ml);
@@ -107,7 +106,10 @@ public class MainActivity extends AppCompatActivity
                 } else if (id == 1) {
                     navigationView.getMenu().clear();
                     navigationView.inflateMenu(R.menu.activity_main_drawer_ca_on);
+                    infoDate[1] = "p[class*=marginClearBottom]";
+                    infoPool[1] = "p[class*=marginClearAll]";
                 }
+                setLottery(navigationView);
 
             }
 
@@ -116,6 +118,31 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+
+        SharedPreferences sharedPref = getSharedPreferences("Settings", MODE_PRIVATE);
+        lastPickRegion = sharedPref.getInt("lastPickRegion", -1);
+
+        if(lastPickRegion != -1){
+            regionSpinner.setSelection(lastPickRegion);
+            Log.d("QiWu", "start"+lastPickRegion+ "was picked");
+        }else{
+            regionSpinner.setSelection(0);
+            Log.d("QiWu", "no region picked");
+        }
+
+    }
+
+    private void setLottery(NavigationView navigationView) {
+        SharedPreferences sharedPref = getSharedPreferences("Settings", MODE_PRIVATE);
+        lastPickLottery = navigationView.getMenu().findItem(sharedPref.getInt("lastPickLotteryID", -1));
+
+        if(lastPickLottery!=null){
+            onNavigationItemSelected(lastPickLottery);
+            Log.d("QiWu", "lastPickLottery not null");
+        }else{
+            Log.d("QiWu", "didn't find");
+            onNavigationItemSelected(navigationView.getMenu().getItem(0));
+        }
     }
 
     @Override
@@ -157,6 +184,11 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment;
         FragmentTransaction ft;
         int id = item.getItemId();
+        SharedPreferences sharedPref = getSharedPreferences("Settings",0);
+        SharedPreferences.Editor prefEditor = sharedPref.edit();
+        prefEditor.putInt("lastPickLotteryID", id);
+        prefEditor.commit();
+        Log.d("QiWu", "Lottery "+id+"picked");
 
         if (id == R.id.nav_dcb) {
             fragment = new dcb_fragment();
@@ -164,6 +196,12 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Double Color Balls");
+            infoDate[0] = "http://caipiao.163.com/order/ssq/";
+            infoDate[1] = "span:contains(投注截止时间)";
+            infoPool[0] = infoDate[0];
+            infoPool[1] = "p[class*=totalPool]";
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         } else if (id == R.id.nav_bl) {
             fragment = new sbl_fragment();
@@ -171,6 +209,12 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Big Lottery");
+            infoDate[0] = "http://caipiao.163.com/order/dlt/";
+            infoDate[1] = "span:contains(代购截止)";
+            infoPool[0] = infoDate[0];
+            infoPool[1] = "p[class*=totalPool]";
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         } else if (id == R.id.nav_ss) {
             fragment = new ss_fragment();
@@ -178,6 +222,12 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Seven Stars");
+            infoDate[0] = "http://caipiao.163.com/order/qxc/";
+            infoDate[1] = "span:contains(投注截止时间)";
+            infoPool[0] = infoDate[0];
+            infoPool[1] = "p[class*=totalPool]";
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         } else if (id == R.id.nav_sh) {
             fragment = new sh_fragment();
@@ -185,6 +235,12 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Seven Happiness");
+            infoDate[0] = "http://caipiao.163.com/order/qlc/";
+            infoDate[1] = "span:contains(投注截止时间)";
+            infoPool[0] = infoDate[0];
+            infoPool[1] = "p[class*=totalPool]";
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         } else if (id == R.id.nav_share) {
 
@@ -196,6 +252,10 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Lotto Max");
+            infoDate[0] = "http://www.olg.ca/lotteries/games/howtoplay.do?game=lottomax";
+            infoPool[0] = infoDate[0];
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         } else if (id == R.id.nav_lotto_649) {
             fragment = new l6_fragment();
@@ -203,6 +263,10 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Lotto 6/49");
+            infoDate[0] = "http://www.olg.ca/lotteries/games/howtoplay.do?game=lotto649";
+            infoPool[0] = infoDate[0];
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         } else if (id == R.id.nav_ontario_49) {
             fragment = new o4_fragment();
@@ -210,6 +274,10 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Ontario 49");
+            infoDate[0] = "http://www.olg.ca/lotteries/games/howtoplay.do?game=ontario49";
+            infoPool[0] = infoDate[0];
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         } else if (id == R.id.nav_lottario) {
             fragment = new lo_fragment();
@@ -217,6 +285,10 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Lottario");
+            infoDate[0] = "http://www.olg.ca/lotteries/games/howtoplay.do?game=lottario";
+            infoPool[0] = infoDate[0];
+            new WebInfoDate().execute(infoDate);
+            new WebInfoPool().execute(infoPool);
 
         }
 
@@ -270,15 +342,19 @@ public class MainActivity extends AppCompatActivity
             try {
                 doc = Jsoup.connect(params[0]).get();
                 date = doc.select(params[1]).first();
-                Log.d("JSwa", "Connecting to [" + date.text() + "]");
+//                Log.d("QiWu", "Connecting to [" + params[0] + " " + params[1] + "]");
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return date.text();
         }
+
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            nextDate.setText(result);
+            if(result.contains("-"))
+                nextDate.setText("The next jackpot is "+result.split(":")[1].split(" ")[1]);
+            else
+                nextDate.setText(result);
         }
     }
 
@@ -291,6 +367,7 @@ public class MainActivity extends AppCompatActivity
             try {
                 doc = Jsoup.connect(params[0]).get();
                 pool = doc.select(params[1]).first();
+//                Log.d("QiWu", "Connecting to [" + params[0] + " " + params[1] + "]");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -298,7 +375,7 @@ public class MainActivity extends AppCompatActivity
         }
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            prizePool.setText(result);
+            prizePool.setText(result.split("e")[0]+" ");
         }
     }
 }
