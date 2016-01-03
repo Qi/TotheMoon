@@ -1,8 +1,13 @@
 package com.vortex.qi.tothemoon;
 
+import android.Manifest;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,7 +15,13 @@ import android.preference.PreferenceActivity;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.NestedScrollingChild;
+import android.support.v4.widget.NestedScrollView;
+import android.support.v7.widget.ActionBarOverlayLayout;
+import android.support.v7.widget.CardView;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,10 +34,29 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.HeaderViewListAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.places.PlaceLikelihood;
+import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -37,20 +67,32 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 123;
     public TextView nextDate;
     public TextView prizePool;
     public FloatingActionButton fab;
     public Spinner regionSpinner;
     public NavigationView navigationView;
     public CollapsingToolbarLayout collapsingToolbarLayout;
-    public String[] infoDate,infoPool;
+    public String[] infoDate, infoPool;
     public MenuItem lastPickLottery;
-    public int lastPickRegion=-1;
+    public int lastPickRegion = -1;
+    public CameraUpdate upDate;
+    public LocationManager locationManager;
+    public String locationProvider;
+    public Location location;
+    public View mapView;
+    public NestedScrollView scroll;
+    public MapFragment mMapFragment;
+    private GoogleApiClient mGoogleApiClient;
+    final String GOOGLE_KEY = "AIzaSyC1Kfq1p84heXOomAq7PD9VbKkEjWC4MIs";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,16 +106,9 @@ public class MainActivity extends AppCompatActivity
         infoDate = new String[2];
         infoPool = new String[2];
 
-//        infoDate[0] = "http://caipiao.163.com/order/ssq/";
-//        infoDate[1] = "span:contains(投注截止时间)";
-//        infoPool[0] = infoDate[0];
-//        infoPool[1] = "p[class*=totalPool]";
-
         View includedView = findViewById(R.id.included_layout);
         nextDate = (TextView) includedView.findViewById(R.id.tv_next_date);
         prizePool = (TextView) includedView.findViewById(R.id.tv_prize_pool);
-//        new WebInfoDate().execute(infoDate);
-//        new WebInfoPool().execute(infoPool);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -97,7 +132,7 @@ public class MainActivity extends AppCompatActivity
                 SharedPreferences.Editor prefEditor = restoreSharedPref.edit();
                 prefEditor.putInt("lastPickRegion", (int) id);
                 prefEditor.commit();
-                Log.d("QiWu", id + "was picked");
+//                Log.d("QiWu", id + "was picked");
 
                 if (id == 0) {
                     navigationView.getMenu().clear();
@@ -119,17 +154,133 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED&&ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION)){
+                Snackbar.make(navigationView, "Need your location!", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+            }else{
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+            }
+            return;
+        }else{
+            List<String> providers = locationManager.getProviders(true);
+            if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+                locationProvider = LocationManager.NETWORK_PROVIDER;
+            } else if (providers.contains(LocationManager.GPS_PROVIDER)) {
+                locationProvider = LocationManager.GPS_PROVIDER;
+            } else {
+                Toast.makeText(this, "no location provider", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+
+        }
+
         SharedPreferences sharedPref = getSharedPreferences("Settings", MODE_PRIVATE);
         lastPickRegion = sharedPref.getInt("lastPickRegion", -1);
 
         if(lastPickRegion != -1){
             regionSpinner.setSelection(lastPickRegion);
-            Log.d("QiWu", "start"+lastPickRegion+ "was picked");
+//            Log.d("QiWu", "start"+lastPickRegion+ "was picked");
         }else{
             regionSpinner.setSelection(0);
-            Log.d("QiWu", "no region picked");
+//            Log.d("QiWu", "no region picked");
         }
 
+        GoogleMapOptions options = new GoogleMapOptions();
+        options.liteMode(true);
+        mMapFragment = MapFragment.newInstance(options);
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.map_container, mMapFragment);
+        fragmentTransaction.commit();
+        mMapFragment.getMapAsync(this);
+
+//        scroll = (NestedScrollView) findViewById(R.id.scroll);
+//        mapView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                switch (event.getAction()) {
+//                    case MotionEvent.ACTION_DOWN:
+//                        Log.d("QiWu", "Down");
+//                        scroll.requestDisallowInterceptTouchEvent(true);
+//                        navigationView.requestDisallowInterceptTouchEvent(true);
+//                        collapsingToolbarLayout.requestDisallowInterceptTouchEvent(true);
+//                        return false;
+//                    case MotionEvent.ACTION_UP:
+//                        scroll.requestDisallowInterceptTouchEvent(false);
+//                        navigationView.requestDisallowInterceptTouchEvent(false);
+//                        collapsingToolbarLayout.requestDisallowInterceptTouchEvent(false);
+//                        return true;
+//                    case MotionEvent.ACTION_MOVE:
+//                        scroll.requestDisallowInterceptTouchEvent(true);
+//                        navigationView.requestDisallowInterceptTouchEvent(true);
+//                        collapsingToolbarLayout.requestDisallowInterceptTouchEvent(true);
+//                        return false;
+//                    default:
+//                        return true;
+////                    case MotionEvent.ACTION_CANCEL:
+////                        scroll.requestDisallowInterceptTouchEvent(false);
+////                        break;
+//                }
+//            }
+//        });
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Snackbar.make(navigationView, "Got your location!", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+
+
+                } else {
+                    Snackbar.make(navigationView, "Didn't location!", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     private void setLottery(NavigationView navigationView) {
@@ -138,9 +289,9 @@ public class MainActivity extends AppCompatActivity
 
         if(lastPickLottery!=null){
             onNavigationItemSelected(lastPickLottery);
-            Log.d("QiWu", "lastPickLottery not null");
+//            Log.d("QiWu", "lastPickLottery not null");
         }else{
-            Log.d("QiWu", "didn't find");
+//            Log.d("QiWu", "didn't find");
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
     }
@@ -188,7 +339,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences.Editor prefEditor = sharedPref.edit();
         prefEditor.putInt("lastPickLotteryID", id);
         prefEditor.commit();
-        Log.d("QiWu", "Lottery "+id+"picked");
+//        Log.d("QiWu", "Lottery "+id+"picked");
 
         if (id == R.id.nav_dcb) {
             fragment = new dcb_fragment();
@@ -222,8 +373,8 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Seven Stars");
-            infoDate[0] = "http://caipiao.163.com/order/qxc/";
-            infoDate[1] = "span:contains(投注截止时间)";
+            infoDate[0] = "http://caipiao.163.com/order/dlt/";
+            infoDate[1] = "span:contains(代购截止)";
             infoPool[0] = infoDate[0];
             infoPool[1] = "p[class*=totalPool]";
             new WebInfoDate().execute(infoDate);
@@ -235,8 +386,8 @@ public class MainActivity extends AppCompatActivity
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
             collapsingToolbarLayout.setTitle("Seven Happiness");
-            infoDate[0] = "http://caipiao.163.com/order/qlc/";
-            infoDate[1] = "span:contains(投注截止时间)";
+            infoDate[0] = "http://caipiao.163.com/order/dlt/";
+            infoDate[1] = "span:contains(代购截止)";
             infoPool[0] = infoDate[0];
             infoPool[1] = "p[class*=totalPool]";
             new WebInfoDate().execute(infoDate);
@@ -333,6 +484,31 @@ public class MainActivity extends AppCompatActivity
         return selectedNums;
     }
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        LatLng home = new LatLng(location.getLatitude(),location.getLongitude());
+        upDate = CameraUpdateFactory.newLatLngZoom(home, 14);
+        googleMap.animateCamera(upDate);
+        googleMap.addMarker(new MarkerOptions().position(home).title("Marker"));
+        mapView = mMapFragment.getView();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
     private class WebInfoDate extends AsyncTask <String,Void, String>{
 
         @Override
@@ -378,4 +554,6 @@ public class MainActivity extends AppCompatActivity
             prizePool.setText(result.split("e")[0]+" ");
         }
     }
+
+
 }
