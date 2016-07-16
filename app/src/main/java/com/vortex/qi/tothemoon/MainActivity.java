@@ -6,6 +6,7 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.Image;
@@ -43,25 +44,22 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -72,6 +70,15 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+
+    private static final LatLng BRISBANE = new LatLng(-27.47093, 153.0235);
+    private static final LatLng MELBOURNE = new LatLng(-37.81319, 144.96298);
+    private static final LatLng SYDNEY = new LatLng(-33.87365, 151.20689);
+    private static final LatLng ADELAIDE = new LatLng(-34.92873, 138.59995);
+    private static final LatLng PERTH = new LatLng(-31.952854, 115.857342);
+    private static final LatLng DARWIN = new LatLng(-12.459501, 130.839915);
+
 
     private final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 123;
     public TextView nextDate;
@@ -91,7 +98,8 @@ public class MainActivity extends AppCompatActivity
     public NestedScrollView scroll;
     public MapFragment mMapFragment;
     private GoogleApiClient mGoogleApiClient;
-    final String GOOGLE_KEY = "AIzaSyC1Kfq1p84heXOomAq7PD9VbKkEjWC4MIs";
+    private GoogleMap mMap;
+//    final String GOOGLE_KEY = "AIzaSyC1Kfq1p84heXOomAq7PD9VbKkEjWC4MIs";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -164,21 +172,21 @@ public class MainActivity extends AppCompatActivity
 
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED&&ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION)){
+                    Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 Snackbar.make(navigationView, "Need your location!", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
-            }else{
+            } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
             }
             return;
-        }else{
+        } else {
             List<String> providers = locationManager.getProviders(true);
             if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
                 locationProvider = LocationManager.NETWORK_PROVIDER;
@@ -196,51 +204,51 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences sharedPref = getSharedPreferences("Settings", MODE_PRIVATE);
         lastPickRegion = sharedPref.getInt("lastPickRegion", -1);
 
-        if(lastPickRegion != -1){
+        if (lastPickRegion != -1) {
             regionSpinner.setSelection(lastPickRegion);
 //            Log.d("QiWu", "start"+lastPickRegion+ "was picked");
-        }else{
+        } else {
             regionSpinner.setSelection(0);
 //            Log.d("QiWu", "no region picked");
         }
 
         GoogleMapOptions options = new GoogleMapOptions();
-        options.liteMode(true);
+//        options.liteMode(true);
         mMapFragment = MapFragment.newInstance(options);
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.map_container, mMapFragment);
         fragmentTransaction.commit();
         mMapFragment.getMapAsync(this);
 
-//        scroll = (NestedScrollView) findViewById(R.id.scroll);
-//        mapView.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                switch (event.getAction()) {
-//                    case MotionEvent.ACTION_DOWN:
-//                        Log.d("QiWu", "Down");
-//                        scroll.requestDisallowInterceptTouchEvent(true);
-//                        navigationView.requestDisallowInterceptTouchEvent(true);
-//                        collapsingToolbarLayout.requestDisallowInterceptTouchEvent(true);
-//                        return false;
-//                    case MotionEvent.ACTION_UP:
-//                        scroll.requestDisallowInterceptTouchEvent(false);
-//                        navigationView.requestDisallowInterceptTouchEvent(false);
-//                        collapsingToolbarLayout.requestDisallowInterceptTouchEvent(false);
-//                        return true;
-//                    case MotionEvent.ACTION_MOVE:
-//                        scroll.requestDisallowInterceptTouchEvent(true);
-//                        navigationView.requestDisallowInterceptTouchEvent(true);
-//                        collapsingToolbarLayout.requestDisallowInterceptTouchEvent(true);
-//                        return false;
-//                    default:
-//                        return true;
-////                    case MotionEvent.ACTION_CANCEL:
-////                        scroll.requestDisallowInterceptTouchEvent(false);
-////                        break;
-//                }
-//            }
-//        });
+        scroll = (NestedScrollView) findViewById(R.id.scroll);
+        ImageView transparentImageView = (ImageView) findViewById(R.id.transparent_image);
+
+        transparentImageView.setOnTouchListener(new View.OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        // Disallow ScrollView to intercept touch events.
+                        scroll.requestDisallowInterceptTouchEvent(true);
+                        // Disable touch on transparent view
+                        return false;
+
+                    case MotionEvent.ACTION_UP:
+                        // Allow ScrollView to intercept touch events.
+                        scroll.requestDisallowInterceptTouchEvent(false);
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        scroll.requestDisallowInterceptTouchEvent(true);
+                        return false;
+
+                    default:
+                        return true;
+                }
+            }
+        });
 
     }
 
@@ -287,10 +295,10 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences sharedPref = getSharedPreferences("Settings", MODE_PRIVATE);
         lastPickLottery = navigationView.getMenu().findItem(sharedPref.getInt("lastPickLotteryID", -1));
 
-        if(lastPickLottery!=null){
+        if (lastPickLottery != null) {
             onNavigationItemSelected(lastPickLottery);
 //            Log.d("QiWu", "lastPickLottery not null");
-        }else{
+        } else {
 //            Log.d("QiWu", "didn't find");
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
@@ -335,7 +343,7 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment;
         FragmentTransaction ft;
         int id = item.getItemId();
-        SharedPreferences sharedPref = getSharedPreferences("Settings",0);
+        SharedPreferences sharedPref = getSharedPreferences("Settings", 0);
         SharedPreferences.Editor prefEditor = sharedPref.edit();
         prefEditor.putInt("lastPickLotteryID", id);
         prefEditor.commit();
@@ -448,25 +456,25 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public String generateNum(int lower, int upper, int number, boolean unique){
+    public String generateNum(int lower, int upper, int number, boolean unique) {
         String selectedNums = "";
         Random rand = new Random();
         int[] num = new int[number];
         int temp;
         int count = 0;
         NumberFormat formatter = new DecimalFormat("00");
-        if(unique){
-            Boolean notExist=true;
-            while(count<num.length){
-                temp = rand.nextInt(upper-lower+1)+lower;
-                for(int j=0;j<count;j++){
-                    if(num[j]==temp){
+        if (unique) {
+            Boolean notExist = true;
+            while (count < num.length) {
+                temp = rand.nextInt(upper - lower + 1) + lower;
+                for (int j = 0; j < count; j++) {
+                    if (num[j] == temp) {
                         notExist = false;
                         break;
                     }
                     notExist = true;
                 }
-                if(notExist) {
+                if (notExist) {
                     num[count] = temp;
                     count++;
                 }
@@ -475,9 +483,9 @@ public class MainActivity extends AppCompatActivity
             for (int aNum : num) {
                 selectedNums = selectedNums + formatter.format(aNum) + " ";
             }
-        }else{
-            for(int i=0;i<number;i++){
-                num[i] = rand.nextInt(upper-lower+1)+lower;
+        } else {
+            for (int i = 0; i < number; i++) {
+                num[i] = rand.nextInt(upper - lower + 1) + lower;
                 selectedNums = selectedNums + formatter.format(num[i]) + " ";
             }
         }
@@ -486,12 +494,31 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
-        LatLng home = new LatLng(location.getLatitude(),location.getLongitude());
-        upDate = CameraUpdateFactory.newLatLngZoom(home, 14);
+        mMap = googleMap;
+        LatLng home = new LatLng(location.getLatitude(), location.getLongitude());
+        upDate = CameraUpdateFactory.newLatLngZoom(BRISBANE, 3);
         googleMap.animateCamera(upDate);
-        googleMap.addMarker(new MarkerOptions().position(home).title("Marker"));
-        mapView = mMapFragment.getView();
+        googleMap.addMarker(new MarkerOptions().position(home).title("You"));
+        addMarkers();
+//        mapView = mMapFragment.getView();
+
+    }
+
+    private void addMarkers(){
+        mMap.addMarker(new MarkerOptions()
+                .position(BRISBANE)
+                .title("Brisbane"));
+
+        mMap.addMarker(new MarkerOptions()
+                .position(MELBOURNE)
+                .title("Melbourne")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
+        mMap.addMarker(new MarkerOptions()
+                .position(SYDNEY)
+                .title("Sydney")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
     }
 
     @Override
@@ -509,7 +536,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private class WebInfoDate extends AsyncTask <String,Void, String>{
+    private class WebInfoDate extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {
@@ -518,7 +545,6 @@ public class MainActivity extends AppCompatActivity
             try {
                 doc = Jsoup.connect(params[0]).get();
                 date = doc.select(params[1]).first();
-//                Log.d("QiWu", "Connecting to [" + params[0] + " " + params[1] + "]");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -527,14 +553,14 @@ public class MainActivity extends AppCompatActivity
 
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if(result.contains("-"))
-                nextDate.setText("The next jackpot is "+result.split(":")[1].split(" ")[1]);
+            if (result.contains("-"))
+                nextDate.setText("The next jackpot is " + result.split(":")[1].split(" ")[1]);
             else
                 nextDate.setText(result);
         }
     }
 
-    private class WebInfoPool extends AsyncTask <String, Void, String> {
+    private class WebInfoPool extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {
@@ -543,15 +569,15 @@ public class MainActivity extends AppCompatActivity
             try {
                 doc = Jsoup.connect(params[0]).get();
                 pool = doc.select(params[1]).first();
-//                Log.d("QiWu", "Connecting to [" + params[0] + " " + params[1] + "]");
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return pool.text();
         }
+
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            prizePool.setText(result.split("e")[0]+" ");
+            prizePool.setText(result.split("e")[0] + " ");
         }
     }
 
