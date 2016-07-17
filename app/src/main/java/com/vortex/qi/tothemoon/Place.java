@@ -1,5 +1,7 @@
 package com.vortex.qi.tothemoon;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,6 +18,12 @@ public class Place {
     private String vicinity;
     private Double latitude;
     private Double longitude;
+    private LatLng latLng;
+
+    public LatLng getLatLng() {
+        this.latLng = new LatLng(this.latitude, this.longitude);
+        return latLng;
+    }
 
     public String getId() {
         return id;

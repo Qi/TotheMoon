@@ -6,21 +6,15 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.widget.NestedScrollView;
-import android.support.v7.widget.ActionBarOverlayLayout;
-import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -34,9 +28,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.HeaderViewListAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -54,16 +45,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -72,14 +60,14 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, ActivityCompat.OnRequestPermissionsResultCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
 
-    private static final LatLng BRISBANE = new LatLng(-27.47093, 153.0235);
-    private static final LatLng MELBOURNE = new LatLng(-37.81319, 144.96298);
-    private static final LatLng SYDNEY = new LatLng(-33.87365, 151.20689);
-    private static final LatLng ADELAIDE = new LatLng(-34.92873, 138.59995);
-    private static final LatLng PERTH = new LatLng(-31.952854, 115.857342);
-    private static final LatLng DARWIN = new LatLng(-12.459501, 130.839915);
+//    private static final LatLng BRISBANE = new LatLng(-27.47093, 153.0235);
+//    private static final LatLng MELBOURNE = new LatLng(-37.81319, 144.96298);
+//    private static final LatLng SYDNEY = new LatLng(-33.87365, 151.20689);
+//    private static final LatLng ADELAIDE = new LatLng(-34.92873, 138.59995);
+//    private static final LatLng PERTH = new LatLng(-31.952854, 115.857342);
+//    private static final LatLng DARWIN = new LatLng(-12.459501, 130.839915);
 
-
+    private LatLng home;
     private final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 123;
     public TextView nextDate;
     public TextView prizePool;
@@ -94,15 +82,16 @@ public class MainActivity extends AppCompatActivity
     public LocationManager locationManager;
     public String locationProvider;
     public Location location;
-    public View mapView;
+//    public View mapView;
     public NestedScrollView scroll;
     public MapFragment mMapFragment;
     private GoogleApiClient mGoogleApiClient;
     private GoogleMap mMap;
-//    final String GOOGLE_KEY = "AIzaSyC1Kfq1p84heXOomAq7PD9VbKkEjWC4MIs";
+    final String GOOGLE_KEY = "AIzaSyC1Kfq1p84heXOomAq7PD9VbKkEjWC4MIs";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+//        Log.d("QiWu", GOOGLE_KEY);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -139,7 +128,7 @@ public class MainActivity extends AppCompatActivity
                 SharedPreferences restoreSharedPref = getSharedPreferences("Settings", 0);
                 SharedPreferences.Editor prefEditor = restoreSharedPref.edit();
                 prefEditor.putInt("lastPickRegion", (int) id);
-                prefEditor.commit();
+                prefEditor.apply();
 //                Log.d("QiWu", id + "was picked");
 
                 if (id == 0) {
@@ -170,7 +159,6 @@ public class MainActivity extends AppCompatActivity
                 .addOnConnectionFailedListener(this)
                 .build();
 
-
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
@@ -197,8 +185,6 @@ public class MainActivity extends AppCompatActivity
                 return;
             }
             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-
         }
 
         SharedPreferences sharedPref = getSharedPreferences("Settings", MODE_PRIVATE);
@@ -249,7 +235,6 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
-
     }
 
     @Override
@@ -276,7 +261,7 @@ public class MainActivity extends AppCompatActivity
 
 
                 } else {
-                    Snackbar.make(navigationView, "Didn't location!", Snackbar.LENGTH_LONG)
+                    Snackbar.make(navigationView, "Can't get your location!", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
 
                     // permission denied, boo! Disable the
@@ -346,7 +331,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences sharedPref = getSharedPreferences("Settings", 0);
         SharedPreferences.Editor prefEditor = sharedPref.edit();
         prefEditor.putInt("lastPickLotteryID", id);
-        prefEditor.commit();
+        prefEditor.apply();
 //        Log.d("QiWu", "Lottery "+id+"picked");
 
         if (id == R.id.nav_dcb) {
@@ -495,30 +480,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        LatLng home = new LatLng(location.getLatitude(), location.getLongitude());
-        upDate = CameraUpdateFactory.newLatLngZoom(BRISBANE, 3);
-        googleMap.animateCamera(upDate);
-        googleMap.addMarker(new MarkerOptions().position(home).title("You"));
+        home = new LatLng(location.getLatitude(), location.getLongitude());
+        upDate = CameraUpdateFactory.newLatLngZoom(home, 16);
+        mMap.animateCamera(upDate);
         addMarkers();
-//        mapView = mMapFragment.getView();
-
     }
 
     private void addMarkers(){
-        mMap.addMarker(new MarkerOptions()
-                .position(BRISBANE)
-                .title("Brisbane"));
-
-        mMap.addMarker(new MarkerOptions()
-                .position(MELBOURNE)
-                .title("Melbourne")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-
-        mMap.addMarker(new MarkerOptions()
-                .position(SYDNEY)
-                .title("Sydney")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-
+        mMap.addMarker(new MarkerOptions().position(home).title("You"));
+        PlacesService mPlacesService = new PlacesService(GOOGLE_KEY);
+        ArrayList<Place> retailers = new ArrayList<Place>();
+        retailers = mPlacesService.findPlaces(home.latitude, home.longitude, "grocery_or_supermarket");
+//        Log.d("QiWu", String.valueOf(retailers.size()));
+//        for (int i = 0; i<retailers.size(); i++) {
+//            mMap.addMarker(new MarkerOptions()
+//                    .position(retailers.get(i).getLatLng())
+//                    .title("Brisbane"));
+//        }
     }
 
     @Override
@@ -580,6 +558,4 @@ public class MainActivity extends AppCompatActivity
             prizePool.setText(result.split("e")[0] + " ");
         }
     }
-
-
 }

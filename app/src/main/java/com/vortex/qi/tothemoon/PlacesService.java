@@ -34,10 +34,11 @@ public class PlacesService {
 
         String urlString = makeUrl(latitude, longitude, placeSpacification);
 
+//        Log.d("QiWu", urlString);
         try {
             String json = getJSON(urlString);
-
-            System.out.println(json);
+//            System.out.println(json);
+            Log.d("QiWu", json);
             JSONObject object = new JSONObject(json);
             JSONArray array = object.getJSONArray("results");
 
@@ -57,11 +58,12 @@ public class PlacesService {
         }
         return null;
     }
+//    https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-33.8670522,151.1957362&radius=500&type=restaurant&name=cruise&key=YOUR_API_KEY
 
-    // https://maps.googleapis.com/maps/api/place/search/json?location=28.632808,77.218276&radius=500&types=atm&sensor=false&key=apikey
+//    https://maps.googleapis.com/maps/api/place/search/json?      location=-28.6328081,177.2182706&radius=500&types=atm000000&sensor=false&key=apikey
     private String makeUrl(double latitude, double longitude, String place) {
         StringBuilder urlString = new StringBuilder(
-                "https://maps.googleapis.com/maps/api/place/search/json?");
+                "https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
 
         if (place.equals("")) {
             urlString.append("&location=");
@@ -70,7 +72,7 @@ public class PlacesService {
             urlString.append(Double.toString(longitude));
             urlString.append("&radius=1000");
             // urlString.append("&types="+place);
-            urlString.append("&sensor=false&key=" + API_KEY);
+            urlString.append("&name=cruise&key=" + API_KEY);
         } else {
             urlString.append("&location=");
             urlString.append(Double.toString(latitude));
@@ -78,7 +80,7 @@ public class PlacesService {
             urlString.append(Double.toString(longitude));
             urlString.append("&radius=1000");
             urlString.append("&types=" + place);
-            urlString.append("&sensor=false&key=" + API_KEY);
+            urlString.append("&name=cruise&key=" + API_KEY);
         }
         return urlString.toString();
     }
