@@ -9,8 +9,9 @@
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="350dp"
         android:theme="@style/AppTheme.AppBarOverlay"
+        android:fitsSystemWindows="true"
         android:id="@+id/app_bar">
 
         <android.support.design.widget.CollapsingToolbarLayout
@@ -60,26 +61,20 @@
                     android:padding="20dp"
                     android:orientation="vertical">
                     <TextView
-                        android:id="@+id/tv_tnji"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="THE NEXT JACKPOT IS "
-                        android:textSize="16sp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_toLeftOf="@id/tv_tnji"
-                        android:id="@+id/tv_next_date"/>
+                        android:id="@+id/tv_next_date"
+                        android:textSize="16sp"/>
                     <TextView
                         android:paddingTop="5dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:paddingLeft="3dp"
                         android:id="@+id/tv_prize_pool"
-                        android:text="$"
                         android:textSize="22sp"
                         android:textColor="#ff0000"
                         android:textStyle="bold|italic"
-                        android:layout_below="@+id/tv_tnji"
+                        android:layout_below="@+id/tv_next_date"
                         android:layout_centerHorizontal="true" />
                     <TextView
                         android:layout_width="wrap_content"
@@ -93,6 +88,44 @@
 
                 </RelativeLayout>
 
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:id="@+id/map_card">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="4dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Nearby retailers"
+                        android:textSize="16sp" />
+                    <RelativeLayout
+                        android:id="@+id/map_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp">
+
+                        <fragment
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:id="@+id/map_container"
+                            tools:context=".MapsActivity"
+                            android:name="com.google.android.gms.maps.SupportMapFragment"/>
+
+                        <ImageView
+                            android:id="@+id/transparent_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="#00ffffff" />
+
+                    </RelativeLayout>
+
+                </LinearLayout>
             </android.support.v7.widget.CardView>
 
         </LinearLayout>
