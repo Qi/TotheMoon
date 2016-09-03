@@ -489,7 +489,7 @@ public class MainActivity extends AppCompatActivity
     private void addMarkers(){
         mMap.addMarker(new MarkerOptions().position(home).title("You"));
         PlacesService mPlacesService = new PlacesService(GOOGLE_KEY);
-        ArrayList<Place> retailers = new ArrayList<Place>();
+        ArrayList<Place> retailers = new ArrayList<>();
         retailers = mPlacesService.findPlaces(home.latitude, home.longitude, "grocery_or_supermarket");
 //        Log.d("QiWu", String.valueOf(retailers.size()));
 //        for (int i = 0; i<retailers.size(); i++) {

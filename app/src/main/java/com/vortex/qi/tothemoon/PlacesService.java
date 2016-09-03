@@ -34,11 +34,9 @@ public class PlacesService {
 
         String urlString = makeUrl(latitude, longitude, placeSpacification);
 
-//        Log.d("QiWu", urlString);
         try {
             String json = getJSON(urlString);
-//            System.out.println(json);
-            Log.d("QiWu", json);
+//            Log.d("QiWu1", json+"a");
             JSONObject object = new JSONObject(json);
             JSONArray array = object.getJSONArray("results");
 
@@ -86,6 +84,7 @@ public class PlacesService {
     }
 
     protected String getJSON(String url) {
+//        Log.d("QiWu1", "getJSON method" + url);
         return getUrlContents(url);
     }
 
@@ -93,12 +92,16 @@ public class PlacesService {
         StringBuilder content = new StringBuilder();
         try {
             URL url = new URL(theUrl);
+//            Log.d("QiWu1", "getUrlContents method" + url);
             URLConnection urlConnection = url.openConnection();
+//            Log.d("QiWu1", "getUrlContents, urlConnection: " + urlConnection.toString());
             BufferedReader bufferedReader = new BufferedReader(
                     new InputStreamReader(urlConnection.getInputStream()), 8);
+            Log.d("QiWu1", "getUrlContents, bufferedReader: " + bufferedReader.readLine());
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 content.append(line + "\n");
+//                Log.d("QiWu1", "getUrlContents, buffered: " + content.toString());
             }
             bufferedReader.close();
         }catch (Exception e) {
